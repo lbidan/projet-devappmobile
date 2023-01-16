@@ -12,20 +12,22 @@ import okhttp3.*
 import java.io.IOException
 import java.net.URL
 
-class MainActivity : AppCompatActivity() {
+class RecipesActivity : AppCompatActivity() {
+
     private lateinit var recyclerView: RecyclerView
-    private lateinit var categoriesAdapter: CategoriesAdapter
+    private lateinit var adapter: RecipesAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_recipes)
+        var category = intent.getStringExtra("category")
 
         val policy: ThreadPolicy = ThreadPolicy.Builder().permitAll().build()
         StrictMode.setThreadPolicy(policy)
 
         recyclerView = findViewById(R.id.recycler_view)
 
-        val url = URL("https://www.themealdb.com/api/json/v1/1/categories.php")
+        val url = URL("https://www.themealdb.com/api/json/v1/1/filter.php?c=$category")
         val request = Request.Builder()
             .url(url)
             .build()
@@ -40,18 +42,17 @@ class MainActivity : AppCompatActivity() {
             override fun onResponse(call: Call, response: Response) {
                 response.body?.string()?.let {
                     val gson = Gson()
-                    val categoriesResponse = gson.fromJson(it, CategoriesResponse::class.java)
-                    categoriesResponse.categories?.let { it1 ->
+                    val recipesResponse = gson.fromJson(it, RecipesResponse::class.java)
+                    recipesResponse.recipes?.let { it1 ->
                         runOnUiThread {
-                            categoriesAdapter = CategoriesAdapter(it1)
-                            recyclerView.adapter = categoriesAdapter
+                            adapter = RecipesAdapter(it1)
+                            recyclerView.adapter = adapter
                             recyclerView.layoutManager = LinearLayoutManager(applicationContext)
                         }
 
                     }
-                    Log.d("OKHTTP", "Got ${categoriesResponse.categories?.count()} results")
+                    Log.d("OKHTTP", "Got ${recipesResponse.recipes?.count()} results")
                 }
             }
-        })
+        })}
     }
-}
